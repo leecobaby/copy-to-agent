@@ -1,0 +1,20 @@
+{
+  "command.copy.title": "将上下文拷贝到 Agent",
+  "command.copyPathOnly.title": "拷贝路径 + 行号到 Agent",
+  "command.copyFile.title": "将文件拷贝到 Agent",
+  "command.copyStack.title": "重新拷贝 Agent 上下文",
+  "command.undo.title": "撤销上一段 Agent 上下文",
+  "command.clear.title": "清空 Agent 上下文",
+  "submenu.label": "拷贝到 Agent",
+  "config.format": "写入剪贴板的片段格式。",
+  "config.format.cursor": "```起始行:结束行:路径 代码块（适合大多数 Agent CLI）",
+  "config.format.markdown": "路径:起始-结束，外加带语言标记的 Markdown 代码块",
+  "config.format.xml": "<snippet path startLine endLine> 代码块",
+  "config.format.ref": "只拷贝 路径:起始-结束，不含代码",
+  "config.mode": "连续多次拷贝如何组合。",
+  "config.mode.append": "像 Cmd+L 一样累积多段，并拷贝整叠上下文",
+  "config.mode.replace": "每次只拷贝当前选区，覆盖上一次",
+  "config.sessionTimeoutSeconds": "append 模式下空闲超过该秒数后自动开新的一叠。0 表示从不自动清空。",
+  "config.pathStyle": "使用工作区相对路径还是绝对路径。",
+  "config.showStatusBar": "在状态栏显示当前已累积的片段数量。"
+}

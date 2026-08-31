@@ -1,0 +1,17 @@
+.vscode/**
+.github/**
+src/**
+**/*.ts
+**/*.map
+**/*.test.js
+tsconfig.json
+.gitignore
+.vscodeignore
+node_modules/**
+out/**/*.test.js
+out/**/*.test.js.map
+out/test/**
+**/*.vsix
+.vscode-test/**
+.DS_Store
+media/gen_icon.py

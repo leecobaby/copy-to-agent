@@ -1,0 +1,202 @@
+{
+  "name": "copy-to-agent",
+  "displayName": "Copy to Agent",
+  "description": "Copy selected code with file path and line range for external agent CLIs — like Cursor Cmd+L, but for the clipboard.",
+  "version": "0.1.0",
+  "publisher": "leecobaby",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leecobaby/copy-to-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leecobaby/copy-to-agent/issues"
+  },
+  "homepage": "https://github.com/leecobaby/copy-to-agent#readme",
+  "keywords": [
+    "agent",
+    "clipboard",
+    "copy",
+    "context",
+    "cli",
+    "cursor",
+    "claude",
+    "codex",
+    "line-number"
+  ],
+  "categories": [
+    "Other",
+    "Chat"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "copyToAgent.copy",
+        "title": "%command.copy.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.copyPathOnly",
+        "title": "%command.copyPathOnly.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.copyFile",
+        "title": "%command.copyFile.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.copyStack",
+        "title": "%command.copyStack.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.undo",
+        "title": "%command.undo.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.clear",
+        "title": "%command.clear.title%",
+        "category": "Copy to Agent"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "copyToAgent.submenu",
+        "label": "%submenu.label%"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "copyToAgent.submenu",
+          "group": "9_cutcopypaste@9",
+          "when": "editorTextFocus"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "copyToAgent.copyFile",
+          "group": "6_copypath@9",
+          "when": "!explorerResourceIsFolder"
+        }
+      ],
+      "copyToAgent.submenu": [
+        {
+          "command": "copyToAgent.copy",
+          "group": "1_copy@1"
+        },
+        {
+          "command": "copyToAgent.copyPathOnly",
+          "group": "1_copy@2"
+        },
+        {
+          "command": "copyToAgent.undo",
+          "group": "2_stack@1",
+          "when": "copyToAgent.hasStack"
+        },
+        {
+          "command": "copyToAgent.copyStack",
+          "group": "2_stack@2",
+          "when": "copyToAgent.hasStack"
+        },
+        {
+          "command": "copyToAgent.clear",
+          "group": "2_stack@3",
+          "when": "copyToAgent.hasStack"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "copyToAgent.copy",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "copyToAgent.clear",
+        "key": "ctrl+alt+shift+l",
+        "mac": "cmd+alt+shift+l"
+      }
+    ],
+    "configuration": {
+      "title": "Copy to Agent",
+      "properties": {
+        "copyToAgent.format": {
+          "type": "string",
+          "enum": [
+            "cursor",
+            "markdown",
+            "xml",
+            "ref"
+          ],
+          "enumDescriptions": [
+            "%config.format.cursor%",
+            "%config.format.markdown%",
+            "%config.format.xml%",
+            "%config.format.ref%"
+          ],
+          "default": "cursor",
+          "description": "%config.format%"
+        },
+        "copyToAgent.mode": {
+          "type": "string",
+          "enum": [
+            "append",
+            "replace"
+          ],
+          "enumDescriptions": [
+            "%config.mode.append%",
+            "%config.mode.replace%"
+          ],
+          "default": "append",
+          "description": "%config.mode%"
+        },
+        "copyToAgent.sessionTimeoutSeconds": {
+          "type": "number",
+          "default": 180,
+          "minimum": 0,
+          "description": "%config.sessionTimeoutSeconds%"
+        },
+        "copyToAgent.pathStyle": {
+          "type": "string",
+          "enum": [
+            "relative",
+            "absolute"
+          ],
+          "default": "relative",
+          "description": "%config.pathStyle%"
+        },
+        "copyToAgent.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showStatusBar%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test out/*.test.js",
+    "test:electron": "npm run compile && node out/test/runTest.js",
+    "package": "npm run compile && npx --yes @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^3.1.0",
+    "typescript": "^5.8.3"
+  }
+}

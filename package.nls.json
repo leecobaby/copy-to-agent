@@ -1,0 +1,20 @@
+{
+  "command.copy.title": "Copy Context to Agent",
+  "command.copyPathOnly.title": "Copy Path + Lines to Agent",
+  "command.copyFile.title": "Copy File to Agent",
+  "command.copyStack.title": "Recopy Agent Context",
+  "command.undo.title": "Remove Last Agent Context",
+  "command.clear.title": "Clear Agent Context",
+  "submenu.label": "Copy to Agent",
+  "config.format": "Clipboard format for copied snippets.",
+  "config.format.cursor": "```start:end:path fenced block (good default for most agent CLIs)",
+  "config.format.markdown": "path:start-end plus a language-tagged markdown fence",
+  "config.format.xml": "<snippet path startLine endLine> block",
+  "config.format.ref": "path:start-end only, no code",
+  "config.mode": "How successive copies combine.",
+  "config.mode.append": "Accumulate snippets (Cmd+L style) and copy the whole stack",
+  "config.mode.replace": "Each copy replaces the clipboard with the current selection only",
+  "config.sessionTimeoutSeconds": "In append mode, start a new stack after this many idle seconds. 0 disables auto-reset.",
+  "config.pathStyle": "Use a workspace-relative or absolute file path.",
+  "config.showStatusBar": "Show a status-bar item with the current snippet count."
+}
