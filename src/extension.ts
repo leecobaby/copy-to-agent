@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { formatStack, type FormatKind, type Snippet } from "./format";
 import { normalizeSelection } from "./selection";
-import { ContextStack, type StackMode } from "./stack";
+import { ContextStack } from "./stack";
 
 const FORMAT_KINDS = new Set<FormatKind>(["cursor", "markdown", "xml", "ref"]);
 
@@ -17,8 +17,10 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(statusBar);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("copyToAgent.copy", () => copyFromEditor(true)),
-    vscode.commands.registerCommand("copyToAgent.copyPathOnly", () => copyFromEditor(false)),
+    vscode.commands.registerCommand("copyToAgent.copyLines", () => copyFromEditor(false, "once")),
+    vscode.commands.registerCommand("copyToAgent.copyBlock", () => copyFromEditor(true, "once")),
+    vscode.commands.registerCommand("copyToAgent.addLines", () => copyFromEditor(false, "add")),
+    vscode.commands.registerCommand("copyToAgent.addBlock", () => copyFromEditor(true, "add")),
     vscode.commands.registerCommand("copyToAgent.copyFile", (uri?: vscode.Uri) => copyFile(uri)),
     vscode.commands.registerCommand("copyToAgent.copyStack", recopyStack),
     vscode.commands.registerCommand("copyToAgent.undo", undoLast),
@@ -37,24 +39,23 @@ export function deactivate(): void {
   statusBar?.dispose();
 }
 
+type CopyKind = "once" | "add";
+
 function config() {
   const cfg = vscode.workspace.getConfiguration("copyToAgent");
   const formatRaw = cfg.get<string>("format", "cursor");
   const format: FormatKind = FORMAT_KINDS.has(formatRaw as FormatKind)
     ? (formatRaw as FormatKind)
     : "cursor";
-  const modeRaw = cfg.get<string>("mode", "append");
-  const mode: StackMode = modeRaw === "replace" ? "replace" : "append";
   return {
     format,
-    mode,
     sessionTimeoutMs: Math.max(0, cfg.get<number>("sessionTimeoutSeconds", 180)) * 1000,
     pathStyle: cfg.get<"relative" | "absolute">("pathStyle", "relative"),
     showStatusBar: cfg.get<boolean>("showStatusBar", true),
   };
 }
 
-async function copyFromEditor(includeCode: boolean): Promise<void> {
+async function copyFromEditor(includeCode: boolean, kind: CopyKind): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void vscode.window.showWarningMessage("Copy to Agent: 没有打开的编辑器");
@@ -62,7 +63,11 @@ async function copyFromEditor(includeCode: boolean): Promise<void> {
   }
 
   const snippets = snippetsFromEditor(editor, includeCode, config().pathStyle);
-  await writeStack(snippets);
+  if (kind === "add") {
+    await addToContext(snippets);
+    return;
+  }
+  await writeOnce(snippets, includeCode ? "代码块" : "行");
 }
 
 async function copyFile(uri?: vscode.Uri): Promise<void> {
@@ -87,7 +92,7 @@ async function copyFile(uri?: vscode.Uri): Promise<void> {
     code: document.getText(new vscode.Range(0, 0, lastLine, document.lineAt(lastLine).text.length)),
     includeCode: true,
   };
-  await writeStack([snippet]);
+  await writeOnce([snippet], "代码块");
 }
 
 async function recopyStack(): Promise<void> {
@@ -102,7 +107,7 @@ async function recopyStack(): Promise<void> {
 async function undoLast(): Promise<void> {
   const removed = stack.undo();
   if (!removed) {
-    void vscode.window.showInformationMessage("Copy to Agent: 没有可撤销的上下文");
+    void vscode.window.showInformationMessage("Copy to Agent: 没有可移除的上下文");
     return;
   }
 
@@ -114,8 +119,8 @@ async function undoLast(): Promise<void> {
   refreshStatusBar();
   void vscode.window.setStatusBarMessage(
     stack.length === 0
-      ? "Copy to Agent: 已清空"
-      : `Copy to Agent: 已撤销，剩余 ${stack.length} 段`,
+      ? "Copy to Agent: 已清空上下文"
+      : `Copy to Agent: 已移除上一段，剩余 ${stack.length} 段`,
     2500,
   );
 }
@@ -126,13 +131,18 @@ async function clearStack(): Promise<void> {
   void vscode.window.setStatusBarMessage("Copy to Agent: 已清空上下文", 2500);
 }
 
-async function writeStack(snippets: Snippet[]): Promise<void> {
-  const { format, mode, sessionTimeoutMs } = config();
-  const items = stack.add(snippets, { mode, sessionTimeoutMs });
+async function writeOnce(snippets: Snippet[], label: string): Promise<void> {
+  await vscode.env.clipboard.writeText(formatStack(snippets, config().format));
+  void vscode.window.setStatusBarMessage(`Copy to Agent: 已复制${label}`, 2500);
+}
+
+async function addToContext(snippets: Snippet[]): Promise<void> {
+  const { format, sessionTimeoutMs } = config();
+  const items = stack.add(snippets, { mode: "append", sessionTimeoutMs });
   await vscode.env.clipboard.writeText(formatStack(items, format));
   refreshStatusBar();
-  const label = items.length === 1 ? "1 段上下文" : `${items.length} 段上下文`;
-  void vscode.window.setStatusBarMessage(`Copy to Agent: 已拷贝 ${label}`, 2500);
+  const count = items.length === 1 ? "1 段" : `${items.length} 段`;
+  void vscode.window.setStatusBarMessage(`Copy to Agent: 已添加到上下文（${count}）`, 2500);
 }
 
 function snippetsFromEditor(
@@ -209,12 +219,12 @@ function refreshStatusBar(): void {
     statusBar.hide();
     return;
   }
-  statusBar.text = `$(copy) Agent ${stack.length}`;
+  statusBar.text = `$(layers) Agent ${stack.length}`;
   const preview = stack
     .snapshot()
     .slice(0, 6)
     .map((item) => `${item.path}:${item.startLine}-${item.endLine}`)
     .join("\n");
-  statusBar.tooltip = `Copy to Agent\n${preview}${stack.length > 6 ? "\n…" : ""}\n\n点击重新拷贝，Cmd+Alt+Shift+L 清空`;
+  statusBar.tooltip = `Copy to Agent 上下文\n${preview}${stack.length > 6 ? "\n…" : ""}\n\n点击重新拷贝整叠\n⌥⌘- 移除上一段 · ⌥⇧⌘- 清空`;
   statusBar.show();
 }

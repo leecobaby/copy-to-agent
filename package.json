@@ -1,8 +1,8 @@
 {
   "name": "copy-to-agent",
   "displayName": "Copy to Agent",
-  "description": "Copy selected code with file path and line range for external agent CLIs — like Cursor Cmd+L, but for the clipboard.",
-  "version": "0.1.0",
+  "description": "Copy selected lines or code blocks with file path and line range for external agent CLIs.",
+  "version": "0.2.0",
   "publisher": "leecobaby",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -39,13 +39,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "copyToAgent.copy",
-        "title": "%command.copy.title%",
+        "command": "copyToAgent.copyLines",
+        "title": "%command.copyLines.title%",
         "category": "Copy to Agent"
       },
       {
-        "command": "copyToAgent.copyPathOnly",
-        "title": "%command.copyPathOnly.title%",
+        "command": "copyToAgent.copyBlock",
+        "title": "%command.copyBlock.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.addLines",
+        "title": "%command.addLines.title%",
+        "category": "Copy to Agent"
+      },
+      {
+        "command": "copyToAgent.addBlock",
+        "title": "%command.addBlock.title%",
         "category": "Copy to Agent"
       },
       {
@@ -92,41 +102,67 @@
       ],
       "copyToAgent.submenu": [
         {
-          "command": "copyToAgent.copy",
+          "command": "copyToAgent.copyLines",
           "group": "1_copy@1"
         },
         {
-          "command": "copyToAgent.copyPathOnly",
+          "command": "copyToAgent.copyBlock",
           "group": "1_copy@2"
         },
         {
-          "command": "copyToAgent.undo",
-          "group": "2_stack@1",
-          "when": "copyToAgent.hasStack"
+          "command": "copyToAgent.addLines",
+          "group": "2_add@1"
         },
         {
-          "command": "copyToAgent.copyStack",
-          "group": "2_stack@2",
+          "command": "copyToAgent.addBlock",
+          "group": "2_add@2"
+        },
+        {
+          "command": "copyToAgent.undo",
+          "group": "3_stack@1",
           "when": "copyToAgent.hasStack"
         },
         {
           "command": "copyToAgent.clear",
-          "group": "2_stack@3",
+          "group": "3_stack@2",
           "when": "copyToAgent.hasStack"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "copyToAgent.copy",
+        "command": "copyToAgent.copyLines",
         "key": "ctrl+alt+l",
         "mac": "cmd+alt+l",
         "when": "editorTextFocus"
       },
       {
+        "command": "copyToAgent.copyBlock",
+        "key": "ctrl+alt+b",
+        "mac": "cmd+alt+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "copyToAgent.addLines",
+        "key": "ctrl+alt+=",
+        "mac": "cmd+alt+=",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "copyToAgent.addBlock",
+        "key": "ctrl+alt+shift+=",
+        "mac": "cmd+alt+shift+=",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "copyToAgent.undo",
+        "key": "ctrl+alt+-",
+        "mac": "cmd+alt+-"
+      },
+      {
         "command": "copyToAgent.clear",
-        "key": "ctrl+alt+shift+l",
-        "mac": "cmd+alt+shift+l"
+        "key": "ctrl+alt+shift+-",
+        "mac": "cmd+alt+shift+-"
       }
     ],
     "configuration": {
@@ -148,19 +184,6 @@
           ],
           "default": "cursor",
           "description": "%config.format%"
-        },
-        "copyToAgent.mode": {
-          "type": "string",
-          "enum": [
-            "append",
-            "replace"
-          ],
-          "enumDescriptions": [
-            "%config.mode.append%",
-            "%config.mode.replace%"
-          ],
-          "default": "append",
-          "description": "%config.mode%"
         },
         "copyToAgent.sessionTimeoutSeconds": {
           "type": "number",
